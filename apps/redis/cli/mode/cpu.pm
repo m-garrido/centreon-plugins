@@ -26,53 +26,6 @@ use strict;
 use warnings;
 use Digest::MD5 qw(md5_hex);
 
-sub set_counters {
-    my ($self, %options) = @_;
-    
-    $self->{maps_counters_type} = [
-        { name => 'global', type => 0, cb_prefix_output => 'prefix_output' }
-    ];
-    
-    $self->{maps_counters}->{global} = [
-        { label => 'sys', set => {
-                key_values => [ { name => 'used_cpu_sys', diff => 1 } ],
-                closure_custom_calc => $self->can('custom_usage_calc'), closure_custom_calc_extra_options => { label_ref => 'used_cpu_sys' },
-                output_template => 'System: %.2f %%', output_use => 'used_delta', threshold_use => 'used_delta',
-                perfdatas => [
-                    { label => 'sys', value => 'used_delta', template => '%.2f', min => 0, max => 100, unit => '%' },
-                ],
-            }
-        },
-        { label => 'user', set => {
-                key_values => [ { name => 'used_cpu_user', diff => 1 } ],
-                closure_custom_calc => $self->can('custom_usage_calc'), closure_custom_calc_extra_options => { label_ref => 'used_cpu_user' },
-                output_template => 'User: %.2f %%', output_use => 'used_delta', threshold_use => 'used_delta',
-                perfdatas => [
-                    { label => 'user', value => 'used_delta', template => '%.2f', min => 0, max => 100, unit => '%' },
-                ],
-            }
-        },
-        { label => 'sys-children', set => {
-                key_values => [ { name => 'used_cpu_sys_children', diff => 1 } ],
-                closure_custom_calc => $self->can('custom_usage_calc'), closure_custom_calc_extra_options => { label_ref => 'used_cpu_sys_children' },
-                output_template => 'System children: %.2f %%', output_use => 'used_delta', threshold_use => 'used_delta',
-                perfdatas => [
-                    { label => 'sys_children', value => 'used_delta', template => '%.2f', min => 0, max => 100, unit => '%' },
-                ],
-            }
-        },
-        { label => 'user-children', set => {
-                key_values => [ { name => 'used_cpu_user_children', diff => 1 } ],
-                closure_custom_calc => $self->can('custom_usage_calc'), closure_custom_calc_extra_options => { label_ref => 'used_cpu_user_children' },
-                output_template => 'User children: %.2f %%', output_use => 'used_delta', threshold_use => 'used_delta',
-                perfdatas => [
-                    { label => 'user_children', value => 'used_delta', template => '%.2f', min => 0, max => 100, unit => '%' },
-                ],
-            }
-        }
-    ];
-}
-
 sub prefix_output {
     my ($self, %options) = @_;
     
@@ -86,6 +39,53 @@ sub custom_usage_calc {
     $self->{result_values}->{used_delta} = 100 * $delta_total / $options{delta_time};
     
     return 0;
+}
+
+sub set_counters {
+    my ($self, %options) = @_;
+    
+    $self->{maps_counters_type} = [
+        { name => 'global', type => 0, cb_prefix_output => 'prefix_output' }
+    ];
+    
+    $self->{maps_counters}->{global} = [
+        { label => 'sys', nlabel => 'cpu.system.utilization.percentage', set => {
+                key_values => [ { name => 'used_cpu_sys', diff => 1 } ],
+                closure_custom_calc => $self->can('custom_usage_calc'), closure_custom_calc_extra_options => { label_ref => 'used_cpu_sys' },
+                output_template => 'System: %.2f %%', output_use => 'used_delta', threshold_use => 'used_delta',
+                perfdatas => [
+                    { label => 'sys', template => '%.2f', min => 0, max => 100, unit => '%' }
+                ]
+            }
+        },
+        { label => 'user', nlabel => 'cpu.user.utilization.percentage', set => {
+                key_values => [ { name => 'used_cpu_user', diff => 1 } ],
+                closure_custom_calc => $self->can('custom_usage_calc'), closure_custom_calc_extra_options => { label_ref => 'used_cpu_user' },
+                output_template => 'User: %.2f %%', output_use => 'used_delta', threshold_use => 'used_delta',
+                perfdatas => [
+                    { label => 'user', value => 'used_delta', template => '%.2f', min => 0, max => 100, unit => '%' }
+                ]
+            }
+        },
+        { label => 'sys-children', nlabel => 'cpu.system.children.utilization.percentage', set => {
+                key_values => [ { name => 'used_cpu_sys_children', diff => 1 } ],
+                closure_custom_calc => $self->can('custom_usage_calc'), closure_custom_calc_extra_options => { label_ref => 'used_cpu_sys_children' },
+                output_template => 'System children: %.2f %%', output_use => 'used_delta', threshold_use => 'used_delta',
+                perfdatas => [
+                    { label => 'sys_children', value => 'used_delta', template => '%.2f', min => 0, max => 100, unit => '%' },
+                ],
+            }
+        },
+        { label => 'user-children', nlabel => 'cpu.user.children.utilization.percentage', set => {
+                key_values => [ { name => 'used_cpu_user_children', diff => 1 } ],
+                closure_custom_calc => $self->can('custom_usage_calc'), closure_custom_calc_extra_options => { label_ref => 'used_cpu_user_children' },
+                output_template => 'User children: %.2f %%', output_use => 'used_delta', threshold_use => 'used_delta',
+                perfdatas => [
+                    { label => 'user_children', value => 'used_delta', template => '%.2f', min => 0, max => 100, unit => '%' }
+                ]
+            }
+        }
+    ];
 }
 
 sub new {

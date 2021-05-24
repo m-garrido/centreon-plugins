@@ -26,6 +26,12 @@ use strict;
 use warnings;
 use Digest::MD5 qw(md5_hex);
 
+sub prefix_output {
+    my ($self, %options) = @_;
+    
+    return "Number of commands: ";
+}
+
 sub set_counters {
     my ($self, %options) = @_;
     
@@ -34,29 +40,23 @@ sub set_counters {
     ];
     
     $self->{maps_counters}->{global} = [
-        { label => 'processed-commands', set => {
+        { label => 'processed-commands', nlabel => 'commands.processed.count', set => {
                 key_values => [ { name => 'total_commands_processed', diff => 1 } ],
                 output_template => 'Processed: %s',
                 perfdatas => [
-                    { label => 'processed_commands', value => 'total_commands_processed', template => '%s', min => 0 },
-                ],
-            },
+                    { label => 'processed_commands', template => '%s', min => 0 }
+                ]
+            }
         },
-        { label => 'ops-per-sec', set => {
+        { label => 'ops-per-sec', nlabel => 'commands.processed.operationspersecond', set => {
                 key_values => [ { name => 'instantaneous_ops_per_sec' } ],
                 output_template => 'Processed per sec: %s',
                 perfdatas => [
-                    { label => 'ops_per_sec', value => 'instantaneous_ops_per_sec', template => '%s', min => 0, unit => 'ops/s' },
-                ],
-            },
-        },
+                    { label => 'ops_per_sec', template => '%s', min => 0, unit => 'ops/s' }
+                ]
+            }
+        }
     ];
-}
-
-sub prefix_output {
-    my ($self, %options) = @_;
-    
-    return "Number of commands: ";
 }
 
 sub new {
@@ -65,9 +65,8 @@ sub new {
     bless $self, $class;
 
 
-    $options{options}->add_options(arguments => 
-                    {
-                    });
+    $options{options}->add_options(arguments => {
+    });
 
     return $self;
 }

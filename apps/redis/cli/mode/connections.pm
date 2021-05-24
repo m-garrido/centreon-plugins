@@ -26,55 +26,6 @@ use strict;
 use warnings;
 use Digest::MD5 qw(md5_hex);
 
-sub set_counters {
-    my ($self, %options) = @_;
-    
-    $self->{maps_counters_type} = [
-        { name => 'connections', type => 0, cb_prefix_output => 'prefix_connections_output' },
-        { name => 'traffic', type => 0, cb_prefix_output => 'prefix_traffic_output' },
-    ];
-    
-    $self->{maps_counters}->{connections} = [
-        { label => 'received-connections', set => {
-                key_values => [ { name => 'total_connections_received', diff => 1 } ],
-                output_template => 'Received: %s',
-                perfdatas => [
-                    { label => 'received_connections', template => '%s', min => 0 },
-                ],
-            },
-        },
-        { label => 'rejected-connections', set => {
-                key_values => [ { name => 'rejected_connections', diff => 1 } ],
-                output_template => 'Rejected: %s',
-                perfdatas => [
-                    { label => 'rejected_connections', template => '%s', min => 0 },
-                ],
-            },
-        },
-    ];
-
-    $self->{maps_counters}->{traffic} = [
-        { label => 'traffic-in', set => {
-                key_values => [ { name => 'total_net_input_bytes', per_second => 1 } ],
-                output_template => 'Traffic In: %s %s/s',
-                output_change_bytes => 2,
-                perfdatas => [
-                    { label => 'traffic_in', template => '%d', min => 0, unit => 'b/s' },
-                ],
-            },
-        },
-        { label => 'traffic-out', set => {
-                key_values => [ { name => 'total_net_output_bytes', per_second => 1 } ],
-                output_template => 'Traffic Out: %s %s/s',
-                output_change_bytes => 2,
-                perfdatas => [
-                    { label => 'traffic_out', template => '%d', min => 0, unit => 'b/s' },
-                ],
-            },
-        },
-    ];
-}
-
 sub prefix_connections_output {
     my ($self, %options) = @_;
     
@@ -85,6 +36,55 @@ sub prefix_traffic_output {
     my ($self, %options) = @_;
     
     return "Network usage: ";
+}
+
+sub set_counters {
+    my ($self, %options) = @_;
+    
+    $self->{maps_counters_type} = [
+        { name => 'connections', type => 0, cb_prefix_output => 'prefix_connections_output' },
+        { name => 'traffic', type => 0, cb_prefix_output => 'prefix_traffic_output' },
+    ];
+    
+    $self->{maps_counters}->{connections} = [
+        { label => 'received-connections', nlabel => 'connections.total.received.count', set => {
+                key_values => [ { name => 'total_connections_received', diff => 1 } ],
+                output_template => 'Received: %s',
+                perfdatas => [
+                    { label => 'received_connections', template => '%s', min => 0 }
+                ]
+            }
+        },
+        { label => 'rejected-connections',nlabel => 'connections.rejected.count', set => {
+                key_values => [ { name => 'rejected_connections', diff => 1 } ],
+                output_template => 'Rejected: %s',
+                perfdatas => [
+                    { label => 'rejected_connections', template => '%s', min => 0 }
+                ]
+            }
+        }
+    ];
+
+    $self->{maps_counters}->{traffic} = [
+        { label => 'traffic-in', nlabel => 'traffic.in.bitsperseconds', set => {
+                key_values => [ { name => 'total_net_input_bytes', per_second => 1 } ],
+                output_template => 'Traffic In: %s %s/s',
+                output_change_bytes => 2,
+                perfdatas => [
+                    { label => 'traffic_in', template => '%d', min => 0, unit => 'b/s' }
+                ]
+            }
+        },
+        { label => 'traffic-out', nlabel => 'traffic.out.bitsperseconds', set => {
+                key_values => [ { name => 'total_net_output_bytes', per_second => 1 } ],
+                output_template => 'Traffic Out: %s %s/s',
+                output_change_bytes => 2,
+                perfdatas => [
+                    { label => 'traffic_out', template => '%d', min => 0, unit => 'b/s' }
+                ]
+            }
+        }
+    ];
 }
 
 sub new {

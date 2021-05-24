@@ -26,81 +26,6 @@ use strict;
 use warnings;
 use centreon::plugins::templates::catalog_functions qw(catalog_status_threshold);
 
-sub set_counters {
-    my ($self, %options) = @_;
-    
-    $self->{maps_counters_type} = [
-        { name => 'global', type => 0, skipped_code => { -10 => 1 } },
-        { name => 'master', type => 0, skipped_code => { -10 => 1 } },
-        { name => 'slave', type => 0, skipped_code => { -10 => 1 } },
-    ];
-    
-    $self->{maps_counters}->{global} = [
-        { label => 'status', threshold => 0, set => {
-                key_values => [ { name => 'link_status' }, { name => 'sync_status' }, { name => 'role' }, { name => 'cluster_state' } ],
-                closure_custom_calc => $self->can('custom_status_calc'),
-                closure_custom_output => $self->can('custom_status_output'),
-                closure_custom_perfdata => sub { return 0; },
-                closure_custom_threshold_check => \&catalog_status_threshold,
-            }
-        },
-        { label => 'connected-slaves', set => {
-                key_values => [ { name => 'connected_slaves' } ],
-                output_template => 'Number of connected slaves: %s',
-                perfdatas => [
-                    { label => 'connected_slaves', value => 'connected_slaves', template => '%s', min => 0 },
-                ],
-            },
-        },
-    ];
-
-    $self->{maps_counters}->{master} = [
-        {  label => 'master-repl-offset', set => {
-                key_values => [ { name => 'master_repl_offset' } ],
-                output_template => 'Master replication offset: %s s',
-                perfdatas => [
-                    { label => 'master_repl_offset', value => 'master_repl_offset', template => '%s', min => 0, unit => 's' },
-                ],
-            },
-        },
-    ];
-
-    $self->{maps_counters}->{slave} = [
-        {  label => 'master-last-io', set => {
-                key_values => [ { name => 'master_last_io_seconds_ago' } ],
-                output_template => 'Last interaction with master: %s s',
-                perfdatas => [
-                    { label => 'master_last_io', value => 'master_last_io_seconds_ago', template => '%s', min => 0, unit => 's' },
-                ],
-            },
-        },
-        {  label => 'slave-repl-offset', set => {
-                key_values => [ { name => 'slave_repl_offset' } ],
-                output_template => 'Slave replication offset: %s s',
-                perfdatas => [
-                    { label => 'slave_repl_offset', value => 'slave_repl_offset', template => '%s', min => 0, unit => 's' },
-                ],
-            },
-        },
-        {  label => 'slave-priority', set => {
-                key_values => [ { name => 'slave_priority' } ],
-                output_template => 'Slave replication offset: %s s',
-                perfdatas => [
-                    { label => 'slave_priority', value => 'slave_priority', template => '%s' },
-                ],
-            },
-        },
-        {  label => 'slave-read-only', set => {
-                key_values => [ { name => 'slave_read_only' } ],
-                output_template => 'Slave replication offset: %s s',
-                perfdatas => [
-                    { label => 'slave_read_only', value => 'slave_read_only', template => '%s' },
-                ],
-            },
-        },
-    ];
-}
-
 sub custom_status_output {
     my ($self, %options) = @_;
 
@@ -122,17 +47,94 @@ sub custom_status_calc {
     return 0;
 }
 
+sub set_counters {
+    my ($self, %options) = @_;
+    
+    $self->{maps_counters_type} = [
+        { name => 'global', type => 0, skipped_code => { -10 => 1 } },
+        { name => 'master', type => 0, skipped_code => { -10 => 1 } },
+        { name => 'slave', type => 0, skipped_code => { -10 => 1 } }
+    ];
+    
+    $self->{maps_counters}->{global} = [
+        { 
+            label => 'status',
+            type => 2,
+            warning_default => '%{sync_status} =~ /in progress/i',
+            critical_default => '%{link_status} =~ /down/i',
+            set => {
+                key_values => [ { name => 'link_status' }, { name => 'sync_status' }, { name => 'role' }, { name => 'cluster_state' } ],
+                closure_custom_calc => $self->can('custom_status_calc'),
+                closure_custom_output => $self->can('custom_status_output'),
+                closure_custom_perfdata => sub { return 0; },
+                closure_custom_threshold_check => \&catalog_status_threshold
+            }
+        },
+        { label => 'connected-slaves', nlabel => 'slaves.connected.count', set => {
+                key_values => [ { name => 'connected_slaves' } ],
+                output_template => 'Number of connected slaves: %s',
+                perfdatas => [
+                    { label => 'connected_slaves', value => 'connected_slaves', template => '%s', min => 0 }
+                ]
+            }
+        }
+    ];
+
+    $self->{maps_counters}->{master} = [
+        {  label => 'master-repl-offset', nlabel => 'master.replication.offset.second', set => {
+                key_values => [ { name => 'master_repl_offset' } ],
+                output_template => 'Master replication offset: %s s',
+                perfdatas => [
+                    { label => 'master_repl_offset', value => 'master_repl_offset', template => '%s', min => 0, unit => 's' }
+                ]
+            }
+        }
+    ];
+
+    $self->{maps_counters}->{slave} = [
+        {  label => 'master-last-io', nlabel => 'master.lastio.second', set => {
+                key_values => [ { name => 'master_last_io_seconds_ago' } ],
+                output_template => 'Last interaction with master: %s s',
+                perfdatas => [
+                    { label => 'master_last_io', value => 'master_last_io_seconds_ago', template => '%s', min => 0, unit => 's' }
+                ]
+            }
+        },
+        {  label => 'slave-repl-offset', nlabel => 'slave.replication.offset.second', set => {
+                key_values => [ { name => 'slave_repl_offset' } ],
+                output_template => 'Slave replication offset: %s s',
+                perfdatas => [
+                    { label => 'slave_repl_offset', value => 'slave_repl_offset', template => '%s', min => 0, unit => 's' }
+                ]
+            }
+        },
+        {  label => 'slave-priority', nlabel => 'slave.priority.replication.offset.second', set => {
+                key_values => [ { name => 'slave_priority' } ],
+                output_template => 'Slave replication offset: %s s',
+                perfdatas => [
+                    { label => 'slave_priority', value => 'slave_priority', template => '%s' }
+                ]
+            }
+        },
+        {  label => 'slave-read-only', nlabel => 'slave.readonly.replication.offset.second', set => {
+                key_values => [ { name => 'slave_read_only' } ],
+                output_template => 'Slave replication offset: %s s',
+                perfdatas => [
+                    { label => 'slave_read_only', value => 'slave_read_only', template => '%s' }
+                ]
+            }
+        }
+    ];
+}
+
 sub new {
     my ($class, %options) = @_;
     my $self = $class->SUPER::new(package => __PACKAGE__, %options);
     bless $self, $class;
 
 
-     $options{options}->add_options(arguments => 
-                {
-                "warning-status:s"    => { name => 'warning_status', default => '%{sync_status} =~ /in progress/i' },
-                "critical-status:s"   => { name => 'critical_status', default => '%{link_status} =~ /down/i' },
-                });
+    $options{options}->add_options(arguments => {
+    });
 
     return $self;
 }

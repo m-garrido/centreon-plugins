@@ -33,37 +33,37 @@ sub set_counters {
     ];
     
     $self->{maps_counters}->{global} = [
-        { label => 'connected-clients', set => {
+        { label => 'connected-clients', nlabel => 'clients.connected.count', set => {
                 key_values => [ { name => 'connected_clients' } ],
                 output_template => 'Connected clients: %s',
                 perfdatas => [
-                    { label => 'connected_clients', value => 'connected_clients', template => '%s', min => 0 },
-                ],
-            },
+                    { label => 'connected_clients', template => '%s', min => 0 }
+                ]
+            }
         },
-        { label => 'blocked-clients', set => {
+        { label => 'blocked-clients', nlabel => 'clients.blocked.count', set => {
                 key_values => [ { name => 'blocked_clients' } ],
                 output_template => 'Blocked clients: %s',
                 perfdatas => [
-                    { label => 'blocked_clients', value => 'blocked_clients', template => '%s', min => 0 },
-                ],
-            },
+                    { label => 'blocked_clients', template => '%s', min => 0 }
+                ]
+            }
         },
-        { label => 'client-longest-output-list', set => {
+        { label => 'client-longest-output-list',  nlabel => 'clients.longest.output.list', set => {
                 key_values => [ { name => 'client_longest_output_list' } ],
                 output_template => 'Client longest output list: %s',
                 perfdatas => [
-                    { label => 'client_longest_output_list', value => 'client_longest_output_list', template => '%s', min => 0 },
-                ],
-            },
+                    { label => 'client_longest_output_list', template => '%s', min => 0 }
+                ]
+            }
         },
-        { label => 'client-biggest-input-buf', set => {
+        { label => 'client-biggest-input-buf', nlabel => 'clients.biggest.input.buffer', set => {
                 key_values => [ { name => 'client_biggest_input_buf' } ],
                 output_template => 'Client biggest input buffer: %s',
                 perfdatas => [
-                    { label => 'client_biggest_input_buf', value => 'client_biggest_input_buf', template => '%s', min => 0 },
-                ],
-            },
+                    { label => 'client_biggest_input_buf', template => '%s', min => 0 }
+                ]
+            }
         }
     ];
 }
@@ -74,9 +74,8 @@ sub new {
     bless $self, $class;
 
 
-    $options{options}->add_options(arguments => 
-                    {
-                    });
+    $options{options}->add_options(arguments => {
+    });
 
     return $self;
 }
