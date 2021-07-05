@@ -140,7 +140,7 @@ sub set_counters {
                 key_values => [ { name => 'read_latency' }, { name => 'display' } ],
                 output_template => 'read latency: %s ms',
                 perfdatas => [
-                    { template => '%s', unit => 'ms', min => 0 }
+                    { template => '%s', unit => 'ms', min => 0, label_extra_instance => 1 }
                 ]
             }
         },
@@ -156,7 +156,7 @@ sub set_counters {
                 key_values => [ { name => 'other_latency' }, { name => 'display' } ],
                 output_template => 'other latency: %s ms',
                 perfdatas => [
-                    { template => '%s', unit => 'ms', min => 0 }
+                    { template => '%s', unit => 'ms', min => 0, label_extra_instance => 1 }
                 ]
             }
         },
