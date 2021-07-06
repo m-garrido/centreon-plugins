@@ -57,6 +57,15 @@ sub set_counters {
                 closure_custom_perfdata => sub { return 0; },
                 closure_custom_threshold_check => \&catalog_status_threshold_ng
             }
+        },
+        { label => 'healthy', set => {
+                key_values => [ { name => 'healthy' }, { name => 'state' }, { name => 'transfer_state' }, { name => 'display' } ],
+                closure_custom_output => $self->can('custom_status_output'),
+                perfdatas => [
+                    { template => '%d', min => 0, unit => '',
+                      cast_int => 1, label_extra_instance => 1 }
+                ]
+            }
         }
     ];
 }
